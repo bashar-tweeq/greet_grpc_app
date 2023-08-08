@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "greet_proto",
+    srcs = ["proto/greet.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "greet_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "greet_grpc_app/grpc_server/proto",
+    proto = ":greet_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "greet_grpc_server",
+    srcs = ["greet_server.go"],
+    importpath = "greet_grpc_app/grpc_server",
+    visibility = ["//visibility:public"],
+    deps = ["greet_go_proto"]
+)
+
+go_binary (
+    name = "greet_grpc_main",
+    srcs = ["main.go"],
+    importpath = "greet_grpc_app/grpc_server",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":greet_grpc_server",
+        ":greet_go_proto",
+        "@org_golang_google_grpc//:grpc"
+    ],
+)
+
